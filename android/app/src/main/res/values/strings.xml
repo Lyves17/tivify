@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tivify</string>
+
+    <!-- Error messages -->
+    <string name="error_network">Error de conexion</string>
+    <string name="error_load_channels">Error cargando canales</string>
+    <string name="error_load_vod">Error cargando peliculas</string>
+    <string name="error_load_series">Error cargando series</string>
+    <string name="error_load_home">Error cargando inicio</string>
+    <string name="error_load_favorites">Error cargando favoritos</string>
+    <string name="error_load_history">Error cargando historial</string>
+    <string name="error_login_failed">Error de login</string>
+    <string name="error_invalid_credentials">Credenciales incorrectas</string>
+    <string name="error_password_weak">Contrasena insegura</string>
+    <string name="error_password_min_length">Minimo 8 caracteres requeridos</string>
+    <string name="error_password_no_uppercase">Debe contener al menos una mayuscula</string>
+    <string name="error_password_no_lowercase">Debe contener al menos una minuscula</string>
+    <string name="error_password_no_digit">Debe contener al menos un numero</string>
+    <string name="error_fields_required">Todos los campos son obligatorios</string>
+    <string name="error_invalid_url">URL del servidor no valida</string>
+    <string name="error_password_mismatch">Las contrasenas no coinciden</string>
+
+    <!-- Success messages -->
+    <string name="success_password_changed">Contrasena cambiada</string>
+    <string name="success_email_updated">Email actualizado</string>
+    <string name="success_logout">Sesion cerrada</string>
+
+    <!-- Generic messages -->
+    <string name="loading">Cargando&#8230;</string>
+    <string name="retry">Reintentar</string>
+
+    <!-- Player accessibility -->
+    <string name="player_back">Volver</string>
+    <string name="player_play">Reproducir</string>
+    <string name="player_pause">Pausar</string>
+    <string name="player_seek_back">Retroceder 10 segundos</string>
+    <string name="player_seek_forward">Adelantar 10 segundos</string>
+    <string name="player_subtitles">Subtitulos</string>
+    <string name="player_quality">Calidad de video</string>
+    <string name="player_speed">Velocidad %1$sx</string>
+    <string name="player_pip">Picture-in-Picture</string>
+    <string name="player_fullscreen">Pantalla completa</string>
+    <string name="player_volume">Volumen</string>
+    <string name="player_settings">Configuracion</string>
+    <string name="player_next_episode">Siguiente episodio</string>
+    <string name="player_previous_episode">Episodio anterior</string>
+</resources>

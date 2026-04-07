@@ -1,0 +1,81 @@
+# === Dependencies ===
+node_modules/
+vendor/
+
+# === Environment & Secrets ===
+# SECURITY: Never commit .env files with real credentials
+.env
+.env.local
+.env.production
+.env.*.local
+
+# === Build outputs & coverage ===
+backend/tmp/
+frontend/.next/
+frontend/out/
+frontend/coverage/
+backend/tivify
+android/app/build/
+android/.gradle/
+
+# === Android & APK ===
+*.apk
+releases/
+android/local.properties
+
+# === Media storage (mounted volumes) ===
+media/
+/mnt/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*.iml
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
+logs/
+
+# === Docker volumes ===
+postgres_data/
+redis_data/
+tailscale_data/
+gradle_cache/
+
+# === Go binary outputs ===
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# === Gradle cache ===
+.gradle/
+build/
+
+# === Temporary files ===
+*.tmp
+*.bak
+*~
+
+# === SSL/TLS certificates (if stored locally) ===
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# === Backup files ===
+*.sql.bak
+*.sql.gz
+
+# === Claude Code ===
+.claude/

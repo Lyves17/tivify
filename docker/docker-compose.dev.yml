@@ -1,0 +1,28 @@
+# Overrides para desarrollo local
+# Uso: docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d postgres redis
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  # En desarrollo, backend y frontend corren en el host con hot reload
+  # No se levantan como contenedores
+  backend:
+    profiles:
+      - production
+
+  frontend:
+    profiles:
+      - production
+
+  nginx:
+    profiles:
+      - production
+
+  tailscale:
+    profiles:
+      - production

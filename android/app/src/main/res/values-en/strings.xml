@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tivify</string>
+
+    <!-- Error messages -->
+    <string name="error_network">Connection error</string>
+    <string name="error_load_channels">Error loading channels</string>
+    <string name="error_load_vod">Error loading movies</string>
+    <string name="error_load_series">Error loading series</string>
+    <string name="error_load_home">Error loading home</string>
+    <string name="error_load_favorites">Error loading favorites</string>
+    <string name="error_load_history">Error loading history</string>
+    <string name="error_login_failed">Login error</string>
+    <string name="error_invalid_credentials">Invalid credentials</string>
+    <string name="error_password_weak">Weak password</string>
+    <string name="error_password_min_length">Minimum 8 characters required</string>
+    <string name="error_password_no_uppercase">Must contain at least one uppercase letter</string>
+    <string name="error_password_no_lowercase">Must contain at least one lowercase letter</string>
+    <string name="error_password_no_digit">Must contain at least one number</string>
+    <string name="error_fields_required">All fields are required</string>
+    <string name="error_invalid_url">Invalid server URL</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
+
+    <!-- Success messages -->
+    <string name="success_password_changed">Password changed</string>
+    <string name="success_email_updated">Email updated</string>
+    <string name="success_logout">Session closed</string>
+
+    <!-- Generic messages -->
+    <string name="loading">Loading&#8230;</string>
+    <string name="retry">Retry</string>
+
+    <!-- Player accessibility -->
+    <string name="player_back">Go back</string>
+    <string name="player_play">Play</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_seek_back">Rewind 10 seconds</string>
+    <string name="player_seek_forward">Forward 10 seconds</string>
+    <string name="player_subtitles">Subtitles</string>
+    <string name="player_quality">Video quality</string>
+    <string name="player_speed">Speed %1$sx</string>
+    <string name="player_pip">Picture-in-Picture</string>
+    <string name="player_fullscreen">Fullscreen</string>
+    <string name="player_volume">Volume</string>
+    <string name="player_settings">Settings</string>
+    <string name="player_next_episode">Next episode</string>
+    <string name="player_previous_episode">Previous episode</string>
+</resources>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Base config: HTTPS only in release builds -->
+    <base-config cleartextTrafficPermitted="false">
+        <!-- Certificate pinning placeholder for production deployment -->
+        <!-- TODO: Add certificate pinning for production domains:
+             <pin-set expiration="2026-01-01">
+                 <pin digest="SHA-256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
+                 <pin digest="SHA-256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
+             </pin-set>
+        -->
+    </base-config>
+
+    <!-- Debug overrides: Allow cleartext for local development and private IPs -->
+    <debug-overrides>
+        <domain-config cleartextTrafficPermitted="true">
+            <!-- localhost and 127.0.0.1 for local development -->
+            <domain includeSubdomains="true">localhost</domain>
+            <domain includeSubdomains="true">127.0.0.1</domain>
+
+            <!-- Private IP ranges (RFC 1918) for local network -->
+            <domain includeSubdomains="true">10.0.0.0/8</domain>
+            <domain includeSubdomains="true">172.16.0.0/12</domain>
+            <domain includeSubdomains="true">192.168.0.0/16</domain>
+
+            <!-- Link-local addresses for LAN discovery -->
+            <domain includeSubdomains="true">169.254.0.0/16</domain>
+        </domain-config>
+    </debug-overrides>
+</network-security-config>

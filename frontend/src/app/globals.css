@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * ACCESSIBILITY & WCAG COMPLIANCE
+ *
+ * Color Contrast Requirements (WCAG 2.1):
+ * - Level AA (minimum): 4.5:1 for normal text, 3:1 for large text
+ * - Level AAA (enhanced): 7:1 for normal text, 4.5:1 for large text
+ *
+ * Current Color Scale (dark-* from Tailwind):
+ * - Text on dark backgrounds should use: text-dark-100 (min), text-dark-200/300 (good)
+ * - Never use: text-dark-500+ on dark-800+ backgrounds (insufficient contrast)
+ * - Links should use: text-primary-400/500 with underline or styling
+ * - Button text should always be high contrast (text-dark-100 minimum)
+ */
+
+@layer base {
+  body {
+    @apply bg-dark-950 text-dark-100;
+  }
+
+  /* Keyboard focus indicators for accessibility */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary-400;
+  }
+
+  /* Remove default focus outline for mouse users, keep for keyboard users */
+  button:focus:not(:focus-visible),
+  a:focus:not(:focus-visible),
+  input:focus:not(:focus-visible),
+  select:focus:not(:focus-visible),
+  textarea:focus:not(:focus-visible) {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400;
+  }
+
+  .btn-secondary {
+    @apply bg-dark-700 hover:bg-dark-600 text-dark-100 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400;
+  }
+
+  .input-field {
+    @apply w-full bg-dark-800 border border-dark-600 rounded-lg px-4 py-2.5 text-dark-100 placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  .card {
+    @apply bg-dark-900 border border-dark-700 rounded-xl p-6;
+  }
+}
