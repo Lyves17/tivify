@@ -19,18 +19,18 @@ import (
 )
 
 type Handlers struct {
-	Auth         *handler.AuthHandler
-	Category     *handler.CategoryHandler
-	Channel      *handler.ChannelHandler
-	VOD          *handler.VODHandler
-	Series       *handler.SeriesHandler
-	User         *handler.UserHandler
-	EPG          *handler.EPGHandler
-	Favorite     *handler.FavoriteHandler
-	WatchHistory *handler.WatchHistoryHandler
-	Dashboard    *handler.DashboardHandler
-	LocalMedia   *handler.LocalMediaHandler
-	Playlist     *handler.PlaylistHandler
+	Auth           *handler.AuthHandler
+	Category       *handler.CategoryHandler
+	Channel        *handler.ChannelHandler
+	VOD            *handler.VODHandler
+	Series         *handler.SeriesHandler
+	User           *handler.UserHandler
+	EPG            *handler.EPGHandler
+	Favorite       *handler.FavoriteHandler
+	WatchHistory   *handler.WatchHistoryHandler
+	Dashboard      *handler.DashboardHandler
+	LocalMedia     *handler.LocalMediaHandler
+	Playlist       *handler.PlaylistHandler
 	Emission       *handler.EmissionHandler
 	LibraryScanner *handler.LibraryScannerHandler
 	IPTV           *handler.IPTVHandler

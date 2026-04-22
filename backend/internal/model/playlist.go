@@ -3,10 +3,10 @@ package model
 import "time"
 
 type Playlist struct {
-	ID           uint   `gorm:"primaryKey" json:"id"`
-	ChannelID    uint   `gorm:"uniqueIndex;not null" json:"channel_id"`
-	PlaybackMode string `gorm:"size:20;default:loop" json:"playback_mode"`
-	IsActive     bool   `gorm:"default:true" json:"is_active"`
+	ID           uint      `gorm:"primaryKey" json:"id"`
+	ChannelID    uint      `gorm:"uniqueIndex;not null" json:"channel_id"`
+	PlaybackMode string    `gorm:"size:20;default:loop" json:"playback_mode"`
+	IsActive     bool      `gorm:"default:true" json:"is_active"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 

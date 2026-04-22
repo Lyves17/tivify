@@ -1,0 +1,201 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v2.4.1). Must already exist in the repo.'
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write    # create GitHub Releases
+  packages: write    # push to GHCR
+  id-token: write    # sigstore / attestations
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: ${{ github.repository_owner }}/tivify
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Metadata / version resolution
+  # ---------------------------------------------------------------------------
+  meta:
+    name: Resolve release metadata
+    runs-on: ubuntu-latest
+    outputs:
+      tag:     ${{ steps.ver.outputs.tag }}
+      version: ${{ steps.ver.outputs.version }}
+      sha:     ${{ steps.ver.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Resolve tag/version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          VERSION="${TAG#v}"
+          FILE_VERSION="$(cat VERSION)"
+          if [ "$VERSION" != "$FILE_VERSION" ]; then
+            echo "::warning::VERSION file ($FILE_VERSION) does not match tag ($VERSION)"
+          fi
+          echo "tag=$TAG"        >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "sha=$GITHUB_SHA"  >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
+  # Build and push backend / frontend / nginx images to GHCR.
+  # Each image is tagged with the semver, major.minor, major, sha, and "latest".
+  # ---------------------------------------------------------------------------
+  images:
+    name: Publish ${{ matrix.image.name }} image
+    needs: meta
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - name: backend
+            context: backend
+            dockerfile: backend/Dockerfile
+            build-args: |
+              APP_VERSION=${{ needs.meta.outputs.version }}
+          - name: frontend
+            context: frontend
+            dockerfile: frontend/Dockerfile
+            build-args: ''
+          - name: nginx
+            context: nginx
+            dockerfile: nginx/Dockerfile
+            build-args: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.meta.outputs.tag }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive image tags
+        id: tags
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}-${{ matrix.image.name }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ needs.meta.outputs.tag }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.meta.outputs.tag }}
+            type=semver,pattern={{major}},value=${{ needs.meta.outputs.tag }}
+            type=sha,format=short
+            type=raw,value=latest,enable=true
+          labels: |
+            org.opencontainers.image.title=TIVIFY ${{ matrix.image.name }}
+            org.opencontainers.image.version=${{ needs.meta.outputs.version }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ needs.meta.outputs.sha }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.image.context }}
+          file: ${{ matrix.image.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          provenance: mode=max
+          sbom: true
+          tags: ${{ steps.tags.outputs.tags }}
+          labels: ${{ steps.tags.outputs.labels }}
+          build-args: ${{ matrix.image.build-args }}
+          cache-from: type=gha,scope=release-${{ matrix.image.name }}
+          cache-to: type=gha,scope=release-${{ matrix.image.name }},mode=max
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}-${{ matrix.image.name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+  # ---------------------------------------------------------------------------
+  # Vulnerability scan for each published image.
+  # ---------------------------------------------------------------------------
+  scan:
+    name: Trivy scan (${{ matrix.image }})
+    needs: [meta, images]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [backend, frontend, nginx]
+    steps:
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}-${{ matrix.image }}:${{ needs.meta.outputs.version }}
+          format: sarif
+          output: trivy-${{ matrix.image }}.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'  # non-blocking; upload to Security tab
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-${{ matrix.image }}.sarif
+          category: trivy-${{ matrix.image }}
+
+  # ---------------------------------------------------------------------------
+  # Publish a compose bundle artifact so operators can grab a pinned
+  # docker-compose + env template for this exact release.
+  # ---------------------------------------------------------------------------
+  bundle:
+    name: Publish deploy bundle
+    needs: [meta, images]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.meta.outputs.tag }}
+
+      - name: Assemble bundle
+        run: |
+          mkdir -p bundle
+          cp -r docker bundle/
+          cp .env.example bundle/.env.example
+          cp docs/DEPLOYMENT.md bundle/DEPLOYMENT.md
+          cat > bundle/VERSION <<EOF
+          ${{ needs.meta.outputs.version }}
+          EOF
+          tar -czf tivify-deploy-${{ needs.meta.outputs.version }}.tar.gz -C bundle .
+
+      - name: Upload bundle to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.meta.outputs.tag }}
+          files: tivify-deploy-${{ needs.meta.outputs.version }}.tar.gz
+          fail_on_unmatched_files: true
+          generate_release_notes: true

@@ -148,6 +148,11 @@ func (s *IPTVSeeder) IsRunning() bool {
 // Preserva cualquier canal existente (manual o no).
 // Diseñado para ejecutarse en una goroutine.
 func (s *IPTVSeeder) SeedFromURL(m3uURL string) {
+	s.SeedFromURLContext(context.Background(), m3uURL)
+}
+
+// SeedFromURLContext es la variante cancelable de SeedFromURL.
+func (s *IPTVSeeder) SeedFromURLContext(ctx context.Context, m3uURL string) {
 	count, err := s.channelRepo.Count()
 	if err != nil {
 		log.Printf("[IPTV] Error verificando canales: %v", err)
@@ -163,7 +168,7 @@ func (s *IPTVSeeder) SeedFromURL(m3uURL string) {
 		Replace: false, // no hay nada que reemplazar
 		Source:  "iptv-org",
 	}
-	s.ImportWithOptions(opts)
+	s.ImportWithOptionsContext(ctx, opts)
 }
 
 // ─── Admin-triggered import ──────────────────────────────────────────────────
@@ -202,7 +207,7 @@ func (s *IPTVSeeder) ImportWithOptionsContext(ctx context.Context, opts IPTVImpo
 	log.Printf("[IPTV] Iniciando importacion: url=%s source=%s replace=%v countries=%v languages=%v categories=%v",
 		opts.M3UURL, opts.Source, opts.Replace, opts.Countries, opts.Languages, opts.Categories)
 
-	body, epgURL, err := s.fetchM3U(opts.M3UURL)
+	body, epgURL, err := s.fetchM3UContext(ctx, opts.M3UURL)
 	if err != nil {
 		s.setStatus(IPTVImportStatus{Running: false, Error: fmt.Sprintf("Error descargando M3U: %v", err)})
 		log.Printf("[IPTV] Error descargando M3U: %v", err)
@@ -322,7 +327,15 @@ var (
 )
 
 func (s *IPTVSeeder) fetchM3U(url string) (content string, epgURL string, err error) {
-	resp, err := s.httpClient.Get(url)
+	return s.fetchM3UContext(context.Background(), url)
+}
+
+func (s *IPTVSeeder) fetchM3UContext(ctx context.Context, url string) (content string, epgURL string, err error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return "", "", err
+	}
+	resp, err := s.httpClient.Do(req)
 	if err != nil {
 		return "", "", err
 	}

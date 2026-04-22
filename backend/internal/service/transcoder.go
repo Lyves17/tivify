@@ -16,13 +16,13 @@ import (
 )
 
 type TranscoderService struct {
-	mediaRepo   LocalMediaRepositoryInterface
-	ffmpegPath  string
+	mediaRepo  LocalMediaRepositoryInterface
+	ffmpegPath string
 	// B19: ffprobePath for audio/video codec detection (exported for use in other services)
 	FFprobePath string
 	mediaPath   string
 	semaphore   chan struct{} // Limits concurrent transcoding jobs
-	hub         *ws.Hub      // WebSocket hub for real-time progress events (optional)
+	hub         *ws.Hub       // WebSocket hub for real-time progress events (optional)
 }
 
 const MaxConcurrentTranscodes = 4 // Limit to 4 concurrent transcoding jobs
@@ -49,8 +49,13 @@ func (s *TranscoderService) SetHub(hub *ws.Hub) {
 	s.hub = hub
 }
 
-// ProbeMedia extracts duration and resolution from a media file using ffprobe
+// ProbeMedia extracts duration and resolution from a media file using ffprobe.
+// Returns zero values and a descriptive error if the receiver is nil so callers
+// (and tests) never dereference a nil pointer.
 func (s *TranscoderService) ProbeMedia(filePath string) (duration float64, resolution string, err error) {
+	if s == nil {
+		return 0, "", fmt.Errorf("transcoder service is not configured")
+	}
 	// Get duration
 	// B19: Use configurable ffprobe path
 	cmd := exec.Command(s.FFprobePath,
@@ -97,6 +102,9 @@ func (s *TranscoderService) ProbeMedia(filePath string) (duration float64, resol
 
 // GenerateThumbnail creates a thumbnail from the video at 10% of duration
 func (s *TranscoderService) GenerateThumbnail(filePath string, outputPath string, duration float64) error {
+	if s == nil {
+		return fmt.Errorf("transcoder service is not configured")
+	}
 	seekTo := duration * 0.1
 	if seekTo < 1 {
 		seekTo = 1
@@ -390,36 +398,48 @@ func (s *TranscoderService) IsBrowserCompatible(filePath string) bool {
 
 // TranscodeToMP4 converts a file to MP4 H.264+AAC (single file, not HLS).
 // Runs in background. Calls onComplete(outputPath, err) when done.
-// Uses a semaphore to limit concurrent transcoding jobs
+// Uses a semaphore to limit concurrent transcoding jobs.
+// Uses context.Background() internally; use TranscodeToMP4Context for cancellation.
 func (s *TranscoderService) TranscodeToMP4(inputPath, outputPath string, duration float64, onProgress func(pct int), onComplete func(err error)) {
+	s.TranscodeToMP4Context(context.Background(), inputPath, outputPath, duration, onProgress, onComplete)
+}
+
+// TranscodeToMP4Context is the cancellation-aware variant of TranscodeToMP4.
+func (s *TranscoderService) TranscodeToMP4Context(ctx context.Context, inputPath, outputPath string, duration float64, onProgress func(pct int), onComplete func(err error)) {
+	// finish wraps onComplete so callers never NPE on a nil callback.
+	finish := func(err error) {
+		if onComplete != nil {
+			onComplete(err)
+		}
+	}
+
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("ERROR: Panic in TranscodeToMP4: %v", r)
-				if onComplete != nil {
-					onComplete(fmt.Errorf("transcode panic: %v", r))
-				}
+				finish(fmt.Errorf("transcode panic: %v", r))
 			}
 		}()
 
-		// Acquire semaphore slot
+		// Acquire semaphore slot, respecting context cancellation.
 		select {
 		case s.semaphore <- struct{}{}:
 			log.Printf("[TRANSCODE-MP4] Job started: %s -> %s (queue available)", inputPath, outputPath)
-		case <-make(chan struct{}):
-			log.Printf("[TRANSCODE-MP4] Job queued: %s (waiting for slot)", inputPath)
-			s.semaphore <- struct{}{}
+		case <-ctx.Done():
+			log.Printf("[TRANSCODE-MP4] Job cancelled while queued: %s", inputPath)
+			finish(ctx.Err())
+			return
 		}
 
 		// Release semaphore slot when done
 		defer func() {
 			<-s.semaphore
-			log.Printf("[TRANSCODE-MP4] Job completed slot released")
+			log.Printf("[TRANSCODE-MP4] Job completed, slot released")
 		}()
 
 		log.Printf("[TRANSCODE-MP4] Inicio: %s -> %s", inputPath, outputPath)
 
-		cmd := exec.Command(s.ffmpegPath,
+		cmd := exec.CommandContext(ctx, s.ffmpegPath,
 			"-i", inputPath,
 			"-c:v", "libx264",
 			"-preset", "fast",
@@ -434,13 +454,13 @@ func (s *TranscoderService) TranscodeToMP4(inputPath, outputPath string, duratio
 		stderr, err := cmd.StderrPipe()
 		if err != nil {
 			log.Printf("[TRANSCODE-MP4] Error stderr pipe: %v", err)
-			onComplete(fmt.Errorf("stderr pipe: %w", err))
+			finish(fmt.Errorf("stderr pipe: %w", err))
 			return
 		}
 
 		if err := cmd.Start(); err != nil {
 			log.Printf("[TRANSCODE-MP4] Error start: %v", err)
-			onComplete(fmt.Errorf("start: %w", err))
+			finish(fmt.Errorf("start: %w", err))
 			return
 		}
 
@@ -467,12 +487,12 @@ func (s *TranscoderService) TranscodeToMP4(inputPath, outputPath string, duratio
 
 		if err := cmd.Wait(); err != nil {
 			log.Printf("[TRANSCODE-MP4] Error: %v", err)
-			onComplete(fmt.Errorf("transcode failed: %w", err))
+			finish(fmt.Errorf("transcode failed: %w", err))
 			return
 		}
 
 		log.Printf("[TRANSCODE-MP4] Completado: %s", outputPath)
-		onComplete(nil)
+		finish(nil)
 	}()
 }
 

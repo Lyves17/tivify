@@ -231,10 +231,10 @@ func (m *mockCategoryRepoH) addCategory(cat *model.Category) {
 // mockCacheH implements service.CacheServiceInterface
 type mockCacheH struct{}
 
-func (m *mockCacheH) Get(key string, dest interface{}) bool        { return false }
+func (m *mockCacheH) Get(key string, dest interface{}) bool                      { return false }
 func (m *mockCacheH) Set(key string, value interface{}, ttl time.Duration) error { return nil }
-func (m *mockCacheH) Delete(key string) error                      { return nil }
-func (m *mockCacheH) DeletePrefix(prefix string) error             { return nil }
+func (m *mockCacheH) Delete(key string) error                                    { return nil }
+func (m *mockCacheH) DeletePrefix(prefix string) error                           { return nil }
 
 // --- Channel & Stream mock repos ---
 
@@ -294,10 +294,10 @@ func (m *mockChannelRepoH) Delete(id uint) error {
 	delete(m.channels, id)
 	return nil
 }
-func (m *mockChannelRepoH) Count() (int64, error)              { return int64(len(m.channels)), nil }
-func (m *mockChannelRepoH) CountActive() (int64, error)        { return int64(len(m.channels)), nil }
+func (m *mockChannelRepoH) Count() (int64, error)                      { return int64(len(m.channels)), nil }
+func (m *mockChannelRepoH) CountActive() (int64, error)                { return int64(len(m.channels)), nil }
 func (m *mockChannelRepoH) CountBySource(source string) (int64, error) { return 0, nil }
-func (m *mockChannelRepoH) DeleteBySource(source string) error { return nil }
+func (m *mockChannelRepoH) DeleteBySource(source string) error         { return nil }
 func (m *mockChannelRepoH) addChannel(ch *model.Channel) {
 	if ch.ID == 0 {
 		ch.ID = m.nextID
@@ -413,11 +413,11 @@ func (m *mockVODRepoH) Delete(id uint) error {
 	delete(m.vods, id)
 	return nil
 }
-func (m *mockVODRepoH) Count() (int64, error)                                         { return int64(len(m.vods)), nil }
-func (m *mockVODRepoH) CountActive() (int64, error)                                   { return int64(len(m.vods)), nil }
-func (m *mockVODRepoH) ListRecent(limit int) ([]model.VOD, error)                     { return nil, nil }
-func (m *mockVODRepoH) ListByTranscodeStatus(statuses []string) ([]model.VOD, error)  { return nil, nil }
-func (m *mockVODRepoH) ListWithoutPoster() ([]model.VOD, error)                       { return nil, nil }
+func (m *mockVODRepoH) Count() (int64, error)                                        { return int64(len(m.vods)), nil }
+func (m *mockVODRepoH) CountActive() (int64, error)                                  { return int64(len(m.vods)), nil }
+func (m *mockVODRepoH) ListRecent(limit int) ([]model.VOD, error)                    { return nil, nil }
+func (m *mockVODRepoH) ListByTranscodeStatus(statuses []string) ([]model.VOD, error) { return nil, nil }
+func (m *mockVODRepoH) ListWithoutPoster() ([]model.VOD, error)                      { return nil, nil }
 func (m *mockVODRepoH) DebugAll() ([]model.VOD, error) {
 	var vs []model.VOD
 	for _, v := range m.vods {
@@ -491,8 +491,8 @@ func (m *mockSeriesRepoH) Delete(id uint) error {
 	delete(m.series, id)
 	return nil
 }
-func (m *mockSeriesRepoH) Count() (int64, error)                   { return int64(len(m.series)), nil }
-func (m *mockSeriesRepoH) CountActive() (int64, error)             { return int64(len(m.series)), nil }
+func (m *mockSeriesRepoH) Count() (int64, error)                      { return int64(len(m.series)), nil }
+func (m *mockSeriesRepoH) CountActive() (int64, error)                { return int64(len(m.series)), nil }
 func (m *mockSeriesRepoH) CountEpisodes(seriesID uint) (int64, error) { return 0, nil }
 func (m *mockSeriesRepoH) ListWithoutPoster() ([]model.Series, error) { return nil, nil }
 func (m *mockSeriesRepoH) addSeries(s *model.Series) {
@@ -702,9 +702,9 @@ func (m *mockEmissionRepoH) ListAll() ([]model.Emission, error) {
 // --- Playlist mock repo ---
 
 type mockPlaylistRepoH struct {
-	playlists map[uint]*model.Playlist
-	items     map[uint]*model.PlaylistItem
-	nextID    uint
+	playlists  map[uint]*model.Playlist
+	items      map[uint]*model.PlaylistItem
+	nextID     uint
 	nextItemID uint
 }
 

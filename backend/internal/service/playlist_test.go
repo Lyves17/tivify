@@ -153,13 +153,13 @@ func (m *mockChannelRepoForPlaylist) List(int, int) ([]model.Channel, int64, err
 func (m *mockChannelRepoForPlaylist) ListActive(int, int, string, *uint) ([]model.Channel, int64, error) {
 	return nil, 0, nil
 }
-func (m *mockChannelRepoForPlaylist) Create(*model.Channel) error  { return nil }
-func (m *mockChannelRepoForPlaylist) Update(*model.Channel) error  { return nil }
-func (m *mockChannelRepoForPlaylist) Delete(uint) error            { return nil }
-func (m *mockChannelRepoForPlaylist) Count() (int64, error)        { return 0, nil }
-func (m *mockChannelRepoForPlaylist) CountActive() (int64, error)  { return 0, nil }
+func (m *mockChannelRepoForPlaylist) Create(*model.Channel) error         { return nil }
+func (m *mockChannelRepoForPlaylist) Update(*model.Channel) error         { return nil }
+func (m *mockChannelRepoForPlaylist) Delete(uint) error                   { return nil }
+func (m *mockChannelRepoForPlaylist) Count() (int64, error)               { return 0, nil }
+func (m *mockChannelRepoForPlaylist) CountActive() (int64, error)         { return 0, nil }
 func (m *mockChannelRepoForPlaylist) CountBySource(string) (int64, error) { return 0, nil }
-func (m *mockChannelRepoForPlaylist) DeleteBySource(string) error  { return nil }
+func (m *mockChannelRepoForPlaylist) DeleteBySource(string) error         { return nil }
 
 type mockStreamRepoForPlaylist struct {
 	streams map[uint][]model.Stream

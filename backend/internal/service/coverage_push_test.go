@@ -743,9 +743,9 @@ func TestSafeResolvePath_Additional(t *testing.T) {
 	svc := NewLocalMediaService(nil, nil, nil, "/media")
 
 	tests := []struct {
-		name     string
-		base     string
-		rel      string
+		name      string
+		base      string
+		rel       string
 		wantEmpty bool
 	}{
 		{"normal path", "/media", "uploads/file.mp4", false},

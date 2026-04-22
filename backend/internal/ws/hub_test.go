@@ -343,6 +343,65 @@ func TestHub_BroadcastToUser_MarshalError(t *testing.T) {
 	}
 }
 
+func TestHub_StopClosesClientSendAndDone(t *testing.T) {
+	hub := NewHub()
+	go hub.Run()
+
+	client := &Client{ID: "c1", UserID: "u1", Send: make(chan []byte, 4)}
+	hub.Register(client)
+	time.Sleep(50 * time.Millisecond)
+
+	hub.Stop()
+
+	select {
+	case <-hub.Done():
+	case <-time.After(time.Second):
+		t.Fatal("Hub.Done() did not fire within 1s of Stop()")
+	}
+
+	// Client.Send must have been closed during Stop() drain so the reader
+	// sees EOF instead of blocking forever.
+	select {
+	case _, ok := <-client.Send:
+		if ok {
+			// First recv was a leftover message; next must signal closed.
+			if _, ok2 := <-client.Send; ok2 {
+				t.Fatal("expected Send channel to be closed after Stop()")
+			}
+		}
+	case <-time.After(time.Second):
+		t.Fatal("expected Send to be closed after Stop(), got timeout")
+	}
+}
+
+func TestHub_StopIsIdempotent(t *testing.T) {
+	hub := NewHub()
+	go hub.Run()
+	hub.Stop()
+	hub.Stop() // must not panic
+	<-hub.Done()
+}
+
+func TestHub_RegisterAfterStopDoesNotBlock(t *testing.T) {
+	hub := NewHub()
+	go hub.Run()
+	hub.Stop()
+	<-hub.Done()
+
+	done := make(chan struct{})
+	go func() {
+		client := &Client{ID: "late", UserID: "u", Send: make(chan []byte, 1)}
+		hub.Register(client)
+		hub.Unregister(client)
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("Register/Unregister blocked after Stop()")
+	}
+}
+
 func TestClient_Fields(t *testing.T) {
 	client := &Client{
 		ID:     "test-id",

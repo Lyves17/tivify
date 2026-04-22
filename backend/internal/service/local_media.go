@@ -33,23 +33,23 @@ var allowedVideoExtensions = map[string]bool{
 
 // Allowed MIME types for video uploads
 var allowedVideoMimeTypes = map[string]bool{
-	"video/mp4":              true,
-	"video/x-matroska":       true,
-	"video/x-msvideo":        true,
-	"video/webm":             true,
-	"video/quicktime":        true,
-	"video/x-flv":            true,
-	"video/mp2t":             true,
-	"video/x-m4v":            true,
-	"video/x-ms-wmv":         true,
+	"video/mp4":                true,
+	"video/x-matroska":         true,
+	"video/x-msvideo":          true,
+	"video/webm":               true,
+	"video/quicktime":          true,
+	"video/x-flv":              true,
+	"video/mp2t":               true,
+	"video/x-m4v":              true,
+	"video/x-ms-wmv":           true,
 	"application/octet-stream": true, // Fallback for unknown video types
 }
 
 type LocalMediaService struct {
-	repo        LocalMediaRepositoryInterface
-	transcoder  *TranscoderService
-	vodService  *VODService
-	mediaPath   string
+	repo       LocalMediaRepositoryInterface
+	transcoder *TranscoderService
+	vodService *VODService
+	mediaPath  string
 }
 
 func NewLocalMediaService(repo LocalMediaRepositoryInterface, transcoder *TranscoderService, vodService *VODService, mediaPath string) *LocalMediaService {
@@ -423,21 +423,21 @@ func (s *LocalMediaService) Delete(id uint) error {
 
 // UploadDiagnostics devuelve información de diagnóstico del pipeline de subida
 type UploadDiagnostics struct {
-	CurrentUser     string              `json:"current_user"`
-	CurrentUID      string              `json:"current_uid"`
-	FFmpegVersion   string              `json:"ffmpeg_version"`
-	FFmpegOK        bool                `json:"ffmpeg_ok"`
-	FFprobeVersion  string              `json:"ffprobe_version"`
-	FFprobeOK       bool                `json:"ffprobe_ok"`
-	MediaPath       string              `json:"media_path"`
-	Directories     []DirDiag           `json:"directories"`
-	DiskFreeGB      float64             `json:"disk_free_gb"`
-	DiskTotalGB     float64             `json:"disk_total_gb"`
-	RecentMedia     []MediaDiag         `json:"recent_media"`
-	PendingCount    int                 `json:"pending_count"`
-	ProcessingCount int                 `json:"processing_count"`
-	CompletedCount  int                 `json:"completed_count"`
-	FailedCount     int                 `json:"failed_count"`
+	CurrentUser     string      `json:"current_user"`
+	CurrentUID      string      `json:"current_uid"`
+	FFmpegVersion   string      `json:"ffmpeg_version"`
+	FFmpegOK        bool        `json:"ffmpeg_ok"`
+	FFprobeVersion  string      `json:"ffprobe_version"`
+	FFprobeOK       bool        `json:"ffprobe_ok"`
+	MediaPath       string      `json:"media_path"`
+	Directories     []DirDiag   `json:"directories"`
+	DiskFreeGB      float64     `json:"disk_free_gb"`
+	DiskTotalGB     float64     `json:"disk_total_gb"`
+	RecentMedia     []MediaDiag `json:"recent_media"`
+	PendingCount    int         `json:"pending_count"`
+	ProcessingCount int         `json:"processing_count"`
+	CompletedCount  int         `json:"completed_count"`
+	FailedCount     int         `json:"failed_count"`
 }
 
 type DirDiag struct {

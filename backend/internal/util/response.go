@@ -9,8 +9,8 @@ type APIResponse struct {
 }
 
 type PaginatedResponse struct {
-	Success bool        `json:"success"`
-	Data    interface{} `json:"data"`
+	Success bool           `json:"success"`
+	Data    interface{}    `json:"data"`
 	Meta    PaginationMeta `json:"meta"`
 }
 

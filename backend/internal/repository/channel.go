@@ -23,14 +23,37 @@ func ftsOrderClause(search string, fallbackOrder string) string {
 		sanitizeForSQL(search), fallbackOrder)
 }
 
-// sanitizeForSQL escapes single quotes to prevent SQL injection in ORDER BY clauses.
+// maxFTSSearchLen caps the length of the search term interpolated into
+// ORDER BY clauses. Arbitrarily large queries aren't useful for ts_rank
+// and keeping a cap reduces the blast radius of any future sanitization bug.
+const maxFTSSearchLen = 200
+
+// sanitizeForSQL escapes characters that have special meaning inside single-quoted
+// PostgreSQL string literals so the result can be safely embedded in an
+// ORDER BY expression. It escapes:
+//   - single quote (') → ” (SQL standard escape)
+//   - backslash (\)   → \\ (needed when standard_conforming_strings is off)
+//
+// and drops NUL bytes and other control characters entirely.
+// Input is also truncated to maxFTSSearchLen to cap worst-case cost.
 func sanitizeForSQL(s string) string {
+	if len(s) > maxFTSSearchLen {
+		s = s[:maxFTSSearchLen]
+	}
 	result := make([]byte, 0, len(s))
 	for i := 0; i < len(s); i++ {
-		if s[i] == '\'' {
+		c := s[i]
+		switch {
+		case c == '\'':
 			result = append(result, '\'', '\'')
-		} else {
-			result = append(result, s[i])
+		case c == '\\':
+			result = append(result, '\\', '\\')
+		case c < 0x20 || c == 0x7f:
+			// drop NUL and other control characters (newline, tab, etc. included
+			// since they have no meaning inside a short search query)
+			continue
+		default:
+			result = append(result, c)
 		}
 	}
 	return string(result)

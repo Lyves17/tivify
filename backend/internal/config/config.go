@@ -20,8 +20,8 @@ type Config struct {
 	DBSSLMode  string
 
 	// B9: Database connection pool configuration
-	DBMaxIdleConns  int
-	DBMaxOpenConns  int
+	DBMaxIdleConns    int
+	DBMaxOpenConns    int
 	DBConnMaxLifetime time.Duration
 
 	RedisHost     string
@@ -36,7 +36,7 @@ type Config struct {
 	FFmpegPath string
 	// B19: FFprobe path can be derived from FFmpegPath or configured separately
 	FFprobePath string
-	BaseURL    string
+	BaseURL     string
 
 	AdminUsername string
 	AdminPassword string
@@ -97,8 +97,8 @@ func Load() *Config {
 		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
 
 		// B9: Database connection pool configuration with sensible defaults
-		DBMaxIdleConns: getEnvInt("DB_MAX_IDLE_CONNS", 10),
-		DBMaxOpenConns: getEnvInt("DB_MAX_OPEN_CONNS", 100),
+		DBMaxIdleConns:    getEnvInt("DB_MAX_IDLE_CONNS", 10),
+		DBMaxOpenConns:    getEnvInt("DB_MAX_OPEN_CONNS", 100),
 		DBConnMaxLifetime: parseDuration(getEnv("DB_CONN_MAX_LIFETIME", "1h")),
 
 		RedisHost:     getEnv("REDIS_HOST", "localhost"),
@@ -113,7 +113,7 @@ func Load() *Config {
 		FFmpegPath: getEnv("FFMPEG_PATH", "ffmpeg"),
 		// B19: Allow separate ffprobe configuration, or derive from ffmpeg path
 		FFprobePath: getEnv("FFPROBE_PATH", "ffprobe"),
-		BaseURL:    getEnv("BASE_URL", "http://localhost"),
+		BaseURL:     getEnv("BASE_URL", "http://localhost"),
 
 		AdminUsername: getEnv("ADMIN_USERNAME", "admin"),
 		AdminPassword: adminPassword,

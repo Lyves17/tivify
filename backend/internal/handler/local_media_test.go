@@ -266,7 +266,6 @@ func TestLocalMediaHandler_Delete_NotFound(t *testing.T) {
 	}
 }
 
-
 func TestLocalMediaHandler_Upload_NoFile(t *testing.T) {
 	h, _ := setupLocalMediaHandler()
 
@@ -326,7 +325,6 @@ func TestLocalMediaHandler_UploadAndCreateVOD_NoFile(t *testing.T) {
 		t.Errorf("UploadAndCreateVOD() no file status = %d, want 400", resp.StatusCode)
 	}
 }
-
 
 func TestLocalMediaHandler_CreateVOD_Success(t *testing.T) {
 	h, repo := setupLocalMediaHandler()

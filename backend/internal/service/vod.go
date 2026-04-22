@@ -273,12 +273,12 @@ func (s *VODService) Delete(id uint) error {
 }
 
 type VODDebugStats struct {
-	Total           int64        `json:"total"`
-	ActiveStandalone int64       `json:"active_standalone"`
-	ActiveEpisodes  int64        `json:"active_episodes"`
-	Inactive        int64        `json:"inactive"`
-	VisibleToUsers  int64        `json:"visible_to_users"`
-	Problems        []VODProblem `json:"problems"`
+	Total            int64        `json:"total"`
+	ActiveStandalone int64        `json:"active_standalone"`
+	ActiveEpisodes   int64        `json:"active_episodes"`
+	Inactive         int64        `json:"inactive"`
+	VisibleToUsers   int64        `json:"visible_to_users"`
+	Problems         []VODProblem `json:"problems"`
 }
 
 type VODProblem struct {

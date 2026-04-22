@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/tivify/backend/internal/dto"
 	"github.com/tivify/backend/internal/service"
 	"github.com/tivify/backend/internal/util"
+	"gorm.io/gorm"
 )
 
 type ChannelHandler struct {
@@ -63,7 +65,10 @@ func (h *ChannelHandler) GetByID(c *fiber.Ctx) error {
 
 	channel, err := h.service.GetByID(uint(id))
 	if err != nil {
-		return util.Error(c, fiber.StatusNotFound, err.Error())
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return util.Error(c, fiber.StatusNotFound, "Canal no encontrado")
+		}
+		return util.Error(c, fiber.StatusInternalServerError, "Error obteniendo canal")
 	}
 	return util.Success(c, channel)
 }

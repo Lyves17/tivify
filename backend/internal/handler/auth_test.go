@@ -475,4 +475,3 @@ func TestAuthHandler_Logout_WithoutLogin(t *testing.T) {
 		t.Error("Logout() should return success=true even without cookie")
 	}
 }
-

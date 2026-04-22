@@ -45,12 +45,12 @@ func (m *mockChannelRepoForIPTV) Create(c *model.Channel) error {
 	m.count++
 	return nil
 }
-func (m *mockChannelRepoForIPTV) Update(*model.Channel) error { return nil }
-func (m *mockChannelRepoForIPTV) Delete(uint) error           { return nil }
-func (m *mockChannelRepoForIPTV) Count() (int64, error)       { return m.count, nil }
-func (m *mockChannelRepoForIPTV) CountActive() (int64, error) { return 0, nil }
+func (m *mockChannelRepoForIPTV) Update(*model.Channel) error         { return nil }
+func (m *mockChannelRepoForIPTV) Delete(uint) error                   { return nil }
+func (m *mockChannelRepoForIPTV) Count() (int64, error)               { return m.count, nil }
+func (m *mockChannelRepoForIPTV) CountActive() (int64, error)         { return 0, nil }
 func (m *mockChannelRepoForIPTV) CountBySource(string) (int64, error) { return 0, nil }
-func (m *mockChannelRepoForIPTV) DeleteBySource(string) error { return nil }
+func (m *mockChannelRepoForIPTV) DeleteBySource(string) error         { return nil }
 
 type mockCategoryRepoForIPTV struct {
 	categories map[string]*model.Category
@@ -380,8 +380,8 @@ func TestIPTVSeeder_BuildCategories(t *testing.T) {
 	entries := []m3uEntry{
 		{TvgName: "Ch1", GroupTitle: "News"},
 		{TvgName: "Ch2", GroupTitle: "Sports"},
-		{TvgName: "Ch3", GroupTitle: "News"},   // duplicate
-		{TvgName: "Ch4", GroupTitle: ""},        // should become "Sin Categoria"
+		{TvgName: "Ch3", GroupTitle: "News"}, // duplicate
+		{TvgName: "Ch4", GroupTitle: ""},     // should become "Sin Categoria"
 	}
 
 	catMap := seeder.buildCategories(entries)

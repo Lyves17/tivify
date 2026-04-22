@@ -103,13 +103,13 @@ func (m *mockChannelRepoForEPG) List(page, perPage int) ([]model.Channel, int64,
 func (m *mockChannelRepoForEPG) ListActive(page, perPage int, search string, categoryID *uint) ([]model.Channel, int64, error) {
 	return nil, 0, nil
 }
-func (m *mockChannelRepoForEPG) Create(channel *model.Channel) error  { return nil }
-func (m *mockChannelRepoForEPG) Update(channel *model.Channel) error  { return nil }
-func (m *mockChannelRepoForEPG) Delete(id uint) error                 { return nil }
-func (m *mockChannelRepoForEPG) Count() (int64, error)                { return 0, nil }
-func (m *mockChannelRepoForEPG) CountActive() (int64, error)          { return 0, nil }
+func (m *mockChannelRepoForEPG) Create(channel *model.Channel) error        { return nil }
+func (m *mockChannelRepoForEPG) Update(channel *model.Channel) error        { return nil }
+func (m *mockChannelRepoForEPG) Delete(id uint) error                       { return nil }
+func (m *mockChannelRepoForEPG) Count() (int64, error)                      { return 0, nil }
+func (m *mockChannelRepoForEPG) CountActive() (int64, error)                { return 0, nil }
 func (m *mockChannelRepoForEPG) CountBySource(source string) (int64, error) { return 0, nil }
-func (m *mockChannelRepoForEPG) DeleteBySource(source string) error   { return nil }
+func (m *mockChannelRepoForEPG) DeleteBySource(source string) error         { return nil }
 
 // --- Tests ---
 
@@ -319,14 +319,14 @@ func TestEPGService_Update_WithChannelID(t *testing.T) {
 	now := time.Now()
 	endTime := now.Add(time.Hour)
 	req := dto.UpdateEPGRequest{
-		ChannelID: &newChannelID,
-		Title:     "Updated",
+		ChannelID:   &newChannelID,
+		Title:       "Updated",
 		Description: "Desc",
-		StartTime: &now,
-		EndTime:   &endTime,
-		Category:  "Sports",
-		Language:  "es",
-		EpisodeNum: "S01E01",
+		StartTime:   &now,
+		EndTime:     &endTime,
+		Category:    "Sports",
+		Language:    "es",
+		EpisodeNum:  "S01E01",
 	}
 	result, err := svc.Update(1, req)
 	if err != nil {

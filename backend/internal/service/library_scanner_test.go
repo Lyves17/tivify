@@ -12,9 +12,9 @@ import (
 // --- Mock LibraryScannerRepository ---
 
 type mockLibraryScannerRepo struct {
-	items    map[uint]*model.LibraryScanItem
+	items     map[uint]*model.LibraryScanItem
 	bySession map[string][]uint // sessionID -> item IDs
-	nextID   uint
+	nextID    uint
 }
 
 func newMockLibraryScannerRepo() *mockLibraryScannerRepo {
@@ -144,8 +144,10 @@ func (m *mockVODRepoForScanner) FindByID(id uint) (*model.VOD, error) {
 	}
 	return v, nil
 }
-func (m *mockVODRepoForScanner) FindBySlug(string) (*model.VOD, error)      { return nil, gorm.ErrRecordNotFound }
-func (m *mockVODRepoForScanner) List(int, int) ([]model.VOD, int64, error)  { return nil, 0, nil }
+func (m *mockVODRepoForScanner) FindBySlug(string) (*model.VOD, error) {
+	return nil, gorm.ErrRecordNotFound
+}
+func (m *mockVODRepoForScanner) List(int, int) ([]model.VOD, int64, error) { return nil, 0, nil }
 func (m *mockVODRepoForScanner) ListActive(int, int, string, *uint) ([]model.VOD, int64, error) {
 	return nil, 0, nil
 }
@@ -160,13 +162,13 @@ func (m *mockVODRepoForScanner) Update(vod *model.VOD) error {
 	m.vods[vod.ID] = vod
 	return nil
 }
-func (m *mockVODRepoForScanner) Delete(uint) error                                    { return nil }
-func (m *mockVODRepoForScanner) Count() (int64, error)                                { return 0, nil }
-func (m *mockVODRepoForScanner) CountActive() (int64, error)                          { return 0, nil }
-func (m *mockVODRepoForScanner) ListRecent(int) ([]model.VOD, error)                  { return nil, nil }
-func (m *mockVODRepoForScanner) ListByTranscodeStatus([]string) ([]model.VOD, error)  { return nil, nil }
-func (m *mockVODRepoForScanner) ListWithoutPoster() ([]model.VOD, error)              { return nil, nil }
-func (m *mockVODRepoForScanner) DebugAll() ([]model.VOD, error)                       { return nil, nil }
+func (m *mockVODRepoForScanner) Delete(uint) error                                   { return nil }
+func (m *mockVODRepoForScanner) Count() (int64, error)                               { return 0, nil }
+func (m *mockVODRepoForScanner) CountActive() (int64, error)                         { return 0, nil }
+func (m *mockVODRepoForScanner) ListRecent(int) ([]model.VOD, error)                 { return nil, nil }
+func (m *mockVODRepoForScanner) ListByTranscodeStatus([]string) ([]model.VOD, error) { return nil, nil }
+func (m *mockVODRepoForScanner) ListWithoutPoster() ([]model.VOD, error)             { return nil, nil }
+func (m *mockVODRepoForScanner) DebugAll() ([]model.VOD, error)                      { return nil, nil }
 
 // --- Mock Series Repo for LibraryScanner ---
 
@@ -203,10 +205,10 @@ func (m *mockSeriesRepoForScanner) Update(s *model.Series) error {
 	m.series[s.ID] = s
 	return nil
 }
-func (m *mockSeriesRepoForScanner) Delete(uint) error                     { return nil }
-func (m *mockSeriesRepoForScanner) Count() (int64, error)                 { return 0, nil }
-func (m *mockSeriesRepoForScanner) CountActive() (int64, error)           { return 0, nil }
-func (m *mockSeriesRepoForScanner) CountEpisodes(uint) (int64, error)     { return 0, nil }
+func (m *mockSeriesRepoForScanner) Delete(uint) error                          { return nil }
+func (m *mockSeriesRepoForScanner) Count() (int64, error)                      { return 0, nil }
+func (m *mockSeriesRepoForScanner) CountActive() (int64, error)                { return 0, nil }
+func (m *mockSeriesRepoForScanner) CountEpisodes(uint) (int64, error)          { return 0, nil }
 func (m *mockSeriesRepoForScanner) ListWithoutPoster() ([]model.Series, error) { return nil, nil }
 
 // --- Mock Category Repo for LibraryScanner ---
@@ -552,19 +554,19 @@ func TestLibraryScannerService_UpdateScanItem_AllFields(t *testing.T) {
 	repo.Create(&model.LibraryScanItem{ScanSessionID: "sess-1", FileName: "test.mp4"})
 
 	updates := map[string]interface{}{
-		"parsed_title":     "Title",
-		"parsed_year":      float64(2021),
-		"media_type":       "movie",
-		"season_number":    float64(2),
-		"episode_number":   float64(5),
-		"tmdb_id":          float64(100),
-		"tmdb_title":       "TMDB",
-		"tmdb_year":        float64(2021),
-		"tmdb_poster_url":  "http://poster.jpg",
+		"parsed_title":      "Title",
+		"parsed_year":       float64(2021),
+		"media_type":        "movie",
+		"season_number":     float64(2),
+		"episode_number":    float64(5),
+		"tmdb_id":           float64(100),
+		"tmdb_title":        "TMDB",
+		"tmdb_year":         float64(2021),
+		"tmdb_poster_url":   "http://poster.jpg",
 		"tmdb_backdrop_url": "http://backdrop.jpg",
-		"tmdb_description": "A description",
-		"tmdb_rating":      float64(8.5),
-		"tmdb_series_name": "Series Name",
+		"tmdb_description":  "A description",
+		"tmdb_rating":       float64(8.5),
+		"tmdb_series_name":  "Series Name",
 	}
 
 	item, err := svc.UpdateScanItem(1, updates)

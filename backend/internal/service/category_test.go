@@ -803,5 +803,5 @@ func (c *prefillCache) Set(key string, value interface{}, ttl time.Duration) err
 	c.data[key] = value
 	return nil
 }
-func (c *prefillCache) Delete(key string) error       { delete(c.data, key); return nil }
+func (c *prefillCache) Delete(key string) error          { delete(c.data, key); return nil }
 func (c *prefillCache) DeletePrefix(prefix string) error { return nil }

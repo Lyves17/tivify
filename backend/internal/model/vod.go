@@ -18,7 +18,7 @@ type VOD struct {
 	OriginalFilename  string         `gorm:"size:255" json:"original_filename"`
 	HLSPath           string         `gorm:"size:500" json:"hls_path"`
 	TranscodeStatus   string         `gorm:"size:20;default:'pending';index" json:"transcode_status"` // pending, processing, completed, failed
-	TranscodeProgress int            `gorm:"default:0" json:"transcode_progress"`               // 0-100
+	TranscodeProgress int            `gorm:"default:0" json:"transcode_progress"`                     // 0-100
 	FileSize          int64          `json:"file_size"`
 	Resolution        string         `gorm:"size:20" json:"resolution"`
 	Year              int            `json:"year"`

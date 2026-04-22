@@ -235,17 +235,22 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Mark so we never loop the same request through the refresh path twice.
+      originalRequest._retry = true;
+
       if (isRefreshing && refreshPromise) {
-        // Queue subsequent requests while refresh is in progress
+        // Queue subsequent requests while refresh is in progress.
         return refreshPromise.then((token) => {
-          if (token) {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
+          if (!token) {
+            // Refresh failed — bail out instead of re-issuing the request and
+            // creating an infinite 401/refresh loop.
+            return Promise.reject(error);
           }
+          originalRequest.headers.Authorization = `Bearer ${token}`;
           return api(originalRequest);
         });
       }
 
-      originalRequest._retry = true;
       isRefreshing = true;
 
       // Create a promise that will resolve when token refresh completes
@@ -271,7 +276,6 @@ api.interceptors.response.use(
           }
 
           resolveRefresh(null);
-          return Promise.reject(refreshError);
         } finally {
           isRefreshing = false;
           refreshPromise = null;

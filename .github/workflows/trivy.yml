@@ -1,0 +1,77 @@
+name: Trivy (filesystem + config)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '23 6 * * 1'  # weekly
+  workflow_dispatch:
+
+concurrency:
+  group: trivy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  fs-scan:
+    name: Filesystem + dependency scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy fs
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-fs.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+          ignore-unfixed: true
+          skip-dirs: node_modules,.next,android/.gradle,.git
+          exit-code: '0'
+        env:
+          # The action's default DB download uses the public registry; retries
+          # help when the registry is rate-limiting new runners.
+          TRIVY_DISABLE_VEX_NOTICE: 'true'
+
+      - name: Upload SARIF
+        # Upload fails for repos without GitHub Advanced Security enabled on
+        # private tiers; keep the scan useful even when upload is rejected.
+        if: always() && hashFiles('trivy-fs.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-fs
+
+  config-scan:
+    name: Dockerfile / compose misconfig scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy config
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: sarif
+          output: trivy-config.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+        env:
+          TRIVY_DISABLE_VEX_NOTICE: 'true'
+
+      - name: Upload SARIF
+        if: always() && hashFiles('trivy-config.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-config.sarif
+          category: trivy-config

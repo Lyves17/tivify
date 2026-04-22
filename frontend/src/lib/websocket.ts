@@ -147,10 +147,21 @@ class WebSocketClient {
 
   private startPing(): void {
     this.stopPing();
+    // The server emits protocol-level PING frames that browsers auto-pong, which
+    // is what actually keeps the connection alive. In addition we send a small
+    // application-level keepalive so intermediate proxies with idle timeouts
+    // don't drop the connection, and so we fail fast if the socket is wedged.
     this.pingTimer = setInterval(() => {
-      if (this.ws?.readyState === WebSocket.OPEN) {
-        // Send a lightweight ping frame (text, since browser WS API doesn't expose ping frames)
-        // The server handles pong via the WebSocket protocol level automatically
+      if (this.ws?.readyState !== WebSocket.OPEN) return;
+      try {
+        this.ws.send(JSON.stringify({ type: "ping", t: Date.now() }));
+      } catch {
+        // Sending failed: tear down so scheduleReconnect() can retry.
+        try {
+          this.ws.close();
+        } catch {
+          /* noop */
+        }
       }
     }, PING_INTERVAL);
   }

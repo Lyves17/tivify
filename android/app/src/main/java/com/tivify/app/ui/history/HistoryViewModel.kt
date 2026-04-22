@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tivify.app.data.api.TivifyApi
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,7 +61,9 @@ class HistoryViewModel @Inject constructor(
                         async {
                             when (entry.contentType) {
                                 "channel" -> {
-                                    val ch = runCatching { api.getChannel(entry.contentId).data }.getOrNull()
+                                    val ch = runCatching { api.getChannel(entry.contentId).data }
+                                        .onFailure { if (it is CancellationException) throw it }
+                                        .getOrNull()
                                     HistoryItem(entry.id, "channel", entry.contentId,
                                         ch?.name ?: "Canal #${entry.contentId}",
                                         ch?.logoUrl,
@@ -68,7 +71,9 @@ class HistoryViewModel @Inject constructor(
                                 }
                                 else -> {
                                     // vod (episode or movie)
-                                    val v = runCatching { api.getVod(entry.contentId).data }.getOrNull()
+                                    val v = runCatching { api.getVod(entry.contentId).data }
+                                        .onFailure { if (it is CancellationException) throw it }
+                                        .getOrNull()
                                     HistoryItem(entry.id, "vod", entry.contentId,
                                         v?.title ?: "Contenido #${entry.contentId}",
                                         v?.posterUrl,
@@ -80,10 +85,15 @@ class HistoryViewModel @Inject constructor(
                 }
 
                 _state.value = HistoryState(history = items, isLoading = false)
+            } catch (e: CancellationException) {
+                // Never swallow cancellation — propagate so the parent scope
+                // (viewModelScope) can clean up correctly.
+                throw e
             } catch (e: Exception) {
+                Log.e(TAG, "Failed to load history", e)
                 _state.value = HistoryState(
                     isLoading = false,
-                    error = "Error cargando historial: ${e.localizedMessage}"
+                    error = "Error cargando historial: ${e.localizedMessage ?: e.javaClass.simpleName}"
                 )
             }
         }
@@ -96,9 +106,10 @@ class HistoryViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     history = _state.value.history.filter { it.historyId != historyId }
                 )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to delete history entry: $historyId", e)
-                // Optionally update state with error
             }
         }
     }

@@ -3,13 +3,13 @@ package dto
 import "time"
 
 type CreateChannelRequest struct {
-	Name          string               `json:"name"`
-	Slug          string               `json:"slug"`
-	CategoryID    *uint                `json:"category_id"`
-	LogoURL       string               `json:"logo_url"`
-	EPGChannelID  string               `json:"epg_channel_id"`
-	ChannelNumber *int                 `json:"channel_number"`
-	IsActive      *bool                `json:"is_active"`
+	Name          string                `json:"name"`
+	Slug          string                `json:"slug"`
+	CategoryID    *uint                 `json:"category_id"`
+	LogoURL       string                `json:"logo_url"`
+	EPGChannelID  string                `json:"epg_channel_id"`
+	ChannelNumber *int                  `json:"channel_number"`
+	IsActive      *bool                 `json:"is_active"`
 	Streams       []CreateStreamRequest `json:"streams"`
 }
 

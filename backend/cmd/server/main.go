@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
@@ -24,6 +25,11 @@ import (
 func main() {
 	// Inicializar structured logging (JSON)
 	util.InitLogger()
+
+	// Shutdown context: signalled when SIGINT/SIGTERM arrives. Passed to
+	// long-running goroutines so they can exit cleanly.
+	shutdownCtx, shutdownCancel := context.WithCancel(context.Background())
+	defer shutdownCancel()
 
 	// Cargar configuracion
 	cfg := config.Load()
@@ -106,7 +112,7 @@ func main() {
 	// Seed admin
 	authService.SeedAdmin()
 
-	// Seed IPTV inicial: solo si la BD está vacía y SEED_IPTV=true
+	// Seed IPTV inicial: solo si la BD está vacía y SEED_IPTV=true.
 	if cfg.SeedIPTV {
 		go func() {
 			defer func() {
@@ -115,7 +121,7 @@ func main() {
 				}
 			}()
 			log.Println("INFO [IPTV-SEED] Starting IPTV seed from URL...")
-			iptvSeeder.SeedFromURL(cfg.IPTVm3uURL)
+			iptvSeeder.SeedFromURLContext(shutdownCtx, cfg.IPTVm3uURL)
 		}()
 	}
 
@@ -168,9 +174,9 @@ func main() {
 	app := fiber.New(fiber.Config{
 		BodyLimit:    50 * 1024 * 1024, // 50MB default body limit (upload endpoints can override)
 		ServerHeader: "",
-		ReadTimeout:  30 * time.Second,  // 30s read timeout
-		WriteTimeout: 60 * time.Second,  // 60s write timeout
-		IdleTimeout:  30 * time.Second,  // 30s idle timeout
+		ReadTimeout:  30 * time.Second, // 30s read timeout
+		WriteTimeout: 60 * time.Second, // 60s write timeout
+		IdleTimeout:  30 * time.Second, // 30s idle timeout
 	})
 
 	// Configurar rutas
@@ -210,11 +216,16 @@ func main() {
 		}()
 		ticker := time.NewTicker(1 * time.Hour)
 		defer ticker.Stop()
-		for range ticker.C {
-			if err := sessionRepo.DeleteExpired(); err != nil {
-				log.Printf("ERROR [SESSION-CLEANUP] Failed to clean expired sessions: %v", err)
-			} else {
-				log.Println("INFO [SESSION-CLEANUP] Expired sessions cleaned successfully")
+		for {
+			select {
+			case <-shutdownCtx.Done():
+				return
+			case <-ticker.C:
+				if err := sessionRepo.DeleteExpired(); err != nil {
+					log.Printf("ERROR [SESSION-CLEANUP] Failed to clean expired sessions: %v", err)
+				} else {
+					log.Println("INFO [SESSION-CLEANUP] Expired sessions cleaned successfully")
+				}
 			}
 		}
 	}()
@@ -230,9 +241,40 @@ func main() {
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 		<-sigChan
 		log.Println("INFO [SHUTDOWN] Server shutdown initiated...")
-		emissionService.StopAll()
-		rdb.Close()
-		app.Shutdown()
+		// Notify all long-running goroutines to stop.
+		shutdownCancel()
+
+		// Stop live emissions (best-effort, own timeout).
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			emissionService.StopAll()
+		}()
+		select {
+		case <-done:
+		case <-time.After(10 * time.Second):
+			log.Println("WARN [SHUTDOWN] StopAll timed out after 10s; proceeding")
+		}
+
+		// Stop the WS hub so new connections are rejected cleanly.
+		wsHub.Stop()
+		select {
+		case <-wsHub.Done():
+		case <-time.After(2 * time.Second):
+		}
+
+		if err := app.ShutdownWithTimeout(15 * time.Second); err != nil {
+			log.Printf("ERROR [SHUTDOWN] Fiber shutdown error: %v", err)
+		}
+
+		// Close Redis last so in-flight handlers finish first.
+		if err := rdb.Close(); err != nil {
+			log.Printf("WARN [SHUTDOWN] redis close: %v", err)
+		}
+		// Close the underlying DB pool.
+		if sqlDB, err := db.DB(); err == nil {
+			_ = sqlDB.Close()
+		}
 	}()
 
 	// Iniciar servidor

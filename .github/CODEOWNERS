@@ -1,0 +1,11 @@
+# Default owner for everything in the repo.
+*                     @AntonioVVilla
+
+# Per-area ownership — extend as more maintainers join.
+/backend/              @AntonioVVilla
+/frontend/             @AntonioVVilla
+/android/              @AntonioVVilla
+/nginx/                @AntonioVVilla
+/docker/               @AntonioVVilla
+/.github/              @AntonioVVilla
+/docs/                 @AntonioVVilla

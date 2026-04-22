@@ -638,7 +638,7 @@ export default function VODPage() {
           <p className="text-xs text-dark-400">
             Modo avanzado: crea un VOD manualmente con HLS path externo. Para subir un archivo y generar
             el VOD automáticamente, usa la pestaña{" "}
-            <span className="text-primary-400 font-medium">"Subir archivo"</span>.
+            <span className="text-primary-400 font-medium">&ldquo;Subir archivo&rdquo;</span>.
           </p>
         </div>
       )}

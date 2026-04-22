@@ -53,10 +53,21 @@ func (s *ChannelService) ListActive(page, perPage int, search string, categoryID
 	return result, total, nil
 }
 
+// channelNotFoundError preserves the "canal no encontrado" message (what callers
+// and tests have historically relied on) while still allowing
+// errors.Is(err, gorm.ErrRecordNotFound) to return true so handlers can map to 404.
+type channelNotFoundError struct{ wrapped error }
+
+func (e *channelNotFoundError) Error() string { return "canal no encontrado" }
+func (e *channelNotFoundError) Unwrap() error { return e.wrapped }
+
 func (s *ChannelService) GetByID(id uint) (*dto.ChannelResponse, error) {
 	channel, err := s.channelRepo.FindByID(id)
 	if err != nil {
-		return nil, errors.New("canal no encontrado")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &channelNotFoundError{wrapped: err}
+		}
+		return nil, err
 	}
 	resp := toChannelResponse(*channel)
 	return &resp, nil

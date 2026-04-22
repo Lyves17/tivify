@@ -549,11 +549,16 @@ private fun VideoPlayer(
         }
         newPlayer.addListener(listener)
 
-        // Cleanup on dispose
+        // Cleanup on dispose. Wrap each step so a throw in one (e.g. stopping
+        // an already-released player on a lifecycle race) can't leak the
+        // subsequent resources.
         onDispose {
-            onProgress(newPlayer.currentPosition, newPlayer.duration)
-            newPlayer.removeListener(listener)
-            newPlayer.release()
+            runCatching { onProgress(newPlayer.currentPosition, newPlayer.duration) }
+            runCatching { newPlayer.playWhenReady = false }
+            runCatching { newPlayer.stop() }
+            runCatching { newPlayer.removeListener(listener) }
+            runCatching { newPlayer.clearMediaItems() }
+            runCatching { newPlayer.release() }
             player.value = null
         }
     }
